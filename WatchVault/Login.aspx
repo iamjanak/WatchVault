@@ -72,8 +72,13 @@ h1,h2,.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter
 
       <div class="mb-3">
         <asp:Label ID="lblEmail" runat="server" AssociatedControlID="txtEmail" CssClass="form-label" Text="Email address" />
-        <asp:TextBox ID="txtEmail" runat="server" CssClass="form-control" TextMode="Email" MaxLength="254" placeholder="you@example.com" autocomplete="username" />
-      </div>
+       <asp:TextBox ID="txtEmail"
+    runat="server"
+    CssClass="form-control"
+    TextMode="Email"
+    MaxLength="150"
+    placeholder="you@example.com"
+    autocomplete="username" />      </div>
 
       <div class="mb-4">
         <asp:Label ID="lblPassword" runat="server" AssociatedControlID="txtPassword" CssClass="form-label" Text="Password" />
@@ -110,9 +115,15 @@ h1,h2,.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter
 <script>
 // Called by Google once the user picks an account; sends the ID token to the server.
 function onGoogleSignIn(response) {
-    document.getElementById('<%= hfGoogleToken.ClientID %>').value = response.credential;
+    if (!response || !response.credential) {
+        return;
+    }
+
+    document.getElementById('<%= hfGoogleToken.ClientID %>').value =
+        response.credential;
+
     document.getElementById('<%= btnGoogle.ClientID %>').click();
-  }
+}
   (function () {
     var t = document.getElementById('tgl'), p = document.getElementById('<%= txtPassword.ClientID %>');
     t.addEventListener('click', function () {

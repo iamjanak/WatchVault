@@ -19,17 +19,18 @@
 
     <title>New Arrivals | WatchVault</title>
 
-    <!-- Fonts -->
+    <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@400;500;600;700;800&display=swap"
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet" />
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet" />
 
-    <!-- Shared WatchVault styles -->
+    <!-- Shared WatchVault Styles -->
     <link href="<%= ResolveUrl("~/Content/Site.css") %>"
           rel="stylesheet" />
 
@@ -50,11 +51,18 @@
             box-sizing: border-box;
         }
 
+        body,
+        button,
+        input,
+        select,
+        textarea {
+            font-family: 'Inter', Arial, sans-serif;
+        }
+
         body {
             margin: 0;
             background: var(--cream);
             color: var(--text);
-            font-family: 'Manrope', Arial, sans-serif;
         }
 
         .page-intro {
@@ -76,7 +84,6 @@
 
         .page-intro h1 {
             margin: 0;
-            font-family: 'Instrument Serif', serif;
             font-size: clamp(36px, 4vw, 52px);
             font-weight: 400;
         }
@@ -150,10 +157,6 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .filter-section:last-of-type {
-            border-bottom: none;
-        }
-
         .filter-section h3 {
             margin: 0 0 15px;
             font-size: 14px;
@@ -198,6 +201,7 @@
             margin: 12px 0;
             font-size: 13px;
             color: #505761;
+            cursor: pointer;
         }
 
         .check-line input {
@@ -349,7 +353,7 @@
         }
 
         .product-description {
-            min-height: 32px;
+            min-height: 52px;
             margin: 0 0 12px;
             color: var(--muted);
             font-size: 11px;
@@ -466,6 +470,7 @@
 
             .product-description {
                 font-size: 10px;
+                min-height: 64px;
             }
 
             .product-price {
@@ -489,58 +494,198 @@
                 height: 240px;
             }
         }
+        
+/* =====================================
+   WATCHVAULT TYPOGRAPHY
+===================================== */
+
+:root {
+    --font-heading: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Inter', Arial, sans-serif;
+}
+
+/* Default font for the entire website */
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-body);
+}
+
+body {
+    font-family: var(--font-body);
+}
+
+/* Main page heading */
+.page-intro h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(42px, 5vw, 60px);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Section headings */
+.filter-heading h2,
+.filter-section h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+}
+
+/* Product brand */
+.product-brand {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+}
+
+/* Product names */
+.product-name {
+    font-family: var(--font-body);
+    font-weight: 600;
+}
+
+/* Product prices */
+.product-price {
+    font-family: var(--font-body);
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.product-price small {
+    font-family: var(--font-body);
+    font-weight: 400;
+}
+
+/* Product descriptions */
+.product-description {
+    font-family: var(--font-body);
+    font-weight: 400;
+}
+
+/* Navigation and buttons */
+.navbar,
+.nav-link,
+button,
+.filter-button,
+.reset-button,
+.view-button {
+    font-family: var(--font-body);
+}
+
+/* Forms and filters */
+input,
+select,
+label,
+.text-input,
+.sort-select,
+.check-line {
+    font-family: var(--font-body);
+}
+
+/* Footer */
+footer {
+    font-family: var(--font-body);
+}
+
+.product-image {
+    width: 100%;
+    height: 280px;
+    background: #f7f5f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+}
+
     </style>
 </head>
 
 <body>
+
 <form id="form1" runat="server">
 
-    <!-- Shared header: do not wrap it in top-strip or another header -->
+    <!-- Shared Header -->
     <wv:Header ID="SiteHeader" runat="server" />
 
+    <!-- Page Intro -->
     <section class="page-intro">
         <p class="eyebrow">The latest collection</p>
+
         <h1>New Arrivals</h1>
+
         <p>
             Discover the latest additions to WatchVault.
             Refined details, timeless design, and watches selected for your style.
         </p>
     </section>
 
+    <!-- Breadcrumb -->
     <div class="breadcrumb">
         <a href="<%= ResolveUrl("~/Default.aspx") %>">Home</a>
-        &nbsp; / &nbsp; <span>New Arrivals</span>
+        &nbsp; / &nbsp;
+        <span>New Arrivals</span>
     </div>
 
     <main class="shop-layout">
 
+        <!-- FILTER SIDEBAR -->
         <aside class="filter-panel">
+
             <div class="filter-heading">
                 <h2>REFINE YOUR SEARCH</h2>
                 <span>FILTERS</span>
             </div>
 
+            <!-- Price Filter -->
             <div class="filter-section">
+
                 <h3>Price Range (NPR)</h3>
 
                 <div class="price-inputs">
+
                     <div>
-                        <label class="field-label" for="txtMinPrice">From</label>
-                        <asp:TextBox ID="txtMinPrice" runat="server"
-                            CssClass="text-input" Text="0"
+                        <label class="field-label" for="txtMinPrice">
+                            From
+                        </label>
+
+                        <asp:TextBox ID="txtMinPrice"
+                            runat="server"
+                            CssClass="text-input"
+                            Text="0"
                             TextMode="Number" />
                     </div>
 
                     <div>
-                        <label class="field-label" for="txtMaxPrice">To</label>
-                        <asp:TextBox ID="txtMaxPrice" runat="server"
-                            CssClass="text-input" Text="200000"
+                        <label class="field-label" for="txtMaxPrice">
+                            To
+                        </label>
+
+                        <asp:TextBox ID="txtMaxPrice"
+                            runat="server"
+                            CssClass="text-input"
+                            Text="200000"
                             TextMode="Number" />
                     </div>
+
                 </div>
+
             </div>
 
+            <!-- Brand Filter -->
             <div class="filter-section">
+
                 <h3>Brand</h3>
 
                 <label class="check-line">
@@ -562,91 +707,160 @@
                     <asp:CheckBox ID="chkCasio" runat="server" />
                     Casio
                 </label>
+
+                <label class="check-line">
+                    <asp:CheckBox ID="chkFossil" runat="server" />
+                    Fossil
+                </label>
+
+                <label class="check-line">
+                    <asp:CheckBox ID="chkTimex" runat="server" />
+                    Timex
+                </label>
+
             </div>
 
-            <asp:Button ID="btnApplyFilters" runat="server"
+            <!-- Filter Buttons -->
+            <asp:Button ID="btnApplyFilters"
+                runat="server"
                 Text="APPLY FILTERS"
                 CssClass="filter-button"
                 OnClick="btnApplyFilters_Click" />
 
-            <asp:Button ID="btnResetFilters" runat="server"
+            <asp:Button ID="btnResetFilters"
+                runat="server"
                 Text="RESET FILTERS"
                 CssClass="reset-button"
                 CausesValidation="false"
                 OnClick="btnResetFilters_Click" />
+
         </aside>
 
+        <!-- PRODUCT CATALOG -->
         <section class="catalog">
+
+            <!-- Toolbar -->
             <div class="catalog-toolbar">
+
                 <div class="result-count">
-                    Showing <strong><asp:Literal ID="litResultCount" runat="server" /></strong>
+                    Showing
+                    <strong>
+                        <asp:Literal ID="litResultCount" runat="server" />
+                    </strong>
                     watches
                 </div>
 
                 <div class="sort-area">
+
                     <label for="ddlSort">SORT BY</label>
 
-                    <asp:DropDownList ID="ddlSort" runat="server"
+                    <asp:DropDownList ID="ddlSort"
+                        runat="server"
                         CssClass="sort-select"
                         AutoPostBack="true"
                         OnSelectedIndexChanged="ddlSort_SelectedIndexChanged">
+
                         <asp:ListItem Value="newest">Newest</asp:ListItem>
-                        <asp:ListItem Value="price-low">Price: Low to High</asp:ListItem>
-                        <asp:ListItem Value="price-high">Price: High to Low</asp:ListItem>
-                        <asp:ListItem Value="name">Name: A to Z</asp:ListItem>
+
+                        <asp:ListItem Value="price-low">
+                            Price: Low to High
+                        </asp:ListItem>
+
+                        <asp:ListItem Value="price-high">
+                            Price: High to Low
+                        </asp:ListItem>
+
+                        <asp:ListItem Value="name">
+                            Name: A to Z
+                        </asp:ListItem>
+
                     </asp:DropDownList>
+
                 </div>
+
             </div>
 
+            <!-- Product Grid -->
             <div class="product-grid">
-                <asp:Repeater ID="rptProducts" runat="server">
-                    <ItemTemplate>
-                        <article class="product-card">
-                            <div class="product-image-wrap">
-                                <span class="new-badge">NEW ARRIVAL</span>
 
-                                <asp:Image ID="imgProduct" runat="server"
-                                    CssClass="product-image"
-                                    ImageUrl='<%# ResolveUrl(Convert.ToString(Eval("ImageUrl"))) %>'
-                                    AlternateText='<%# Eval("Name") %>' />
-                            </div>
+                <asp:Repeater ID="rptProducts" runat="server">
+
+                    <ItemTemplate>
+
+                        <article class="product-card">
+
+    <div class="product-image-wrap">
+
+    <span class="new-badge">
+        NEW ARRIVAL
+    </span>
+
+    <img
+        src='<%# ResolveUrl(Convert.ToString(Eval("ImageUrl"))) %>'
+        class="product-image"
+        alt='<%# Eval("Name") %>'
+        loading="lazy" />
+
+</div>
 
                             <div class="product-info">
-                                <p class="product-brand"><%# Eval("Brand") %></p>
-                                <h2 class="product-name"><%# Eval("Name") %></h2>
+
+                                <p class="product-brand">
+                                    <%# Eval("Brand") %>
+                                </p>
+
+                                <h2 class="product-name">
+                                    <%# Eval("Name") %>
+                                </h2>
 
                                 <p class="product-description">
                                     <%# Eval("Description") %>
                                 </p>
 
                                 <div class="product-price">
-                                    <small>NPR</small><%# String.Format("{0:N0}", Eval("Price")) %>
+                                    <small>NPR</small>
+                                    <%# Eval("Price", "{0:N0}") %>
                                 </div>
 
-                                <a class="view-button"
-                                   href='<%# ResolveUrl("~/Products/ProductDetails.aspx?id=" + Eval("ProductId")) %>'>
-                                    VIEW DETAILS
+                                <a href='<%# ResolveUrl("~/Products/ProductDetails.aspx?id=" + Eval("ProductId")) %>'
+                                    class="view-button">VIEW DETAILS
                                 </a>
+
                             </div>
+
                         </article>
+
                     </ItemTemplate>
+
                 </asp:Repeater>
 
-                <asp:Panel ID="pnlNoProducts" runat="server"
-                    CssClass="empty-message" Visible="false">
+                <!-- Empty Result Message -->
+                <asp:Panel ID="pnlNoProducts"
+                    runat="server"
+                    CssClass="empty-message"
+                    Visible="false">
+
                     <strong>No watches match your filters.</strong>
+
                     <br />
-                    Try a different price range or reset the filters to see all new arrivals.
+
+                    Try a different price range or reset the filters
+                    to see all new arrivals.
+
                 </asp:Panel>
+
             </div>
+
         </section>
+
     </main>
 
-    <!-- Shared footer: replaces the old site-footer -->
+    <!-- Shared Footer -->
     <wv:Footer ID="SiteFooter" runat="server" />
 
 </form>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

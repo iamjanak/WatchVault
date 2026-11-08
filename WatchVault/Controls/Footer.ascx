@@ -32,7 +32,8 @@
 
             <div class="col-lg-4">
                 <h4>Client Support</h4>
-                <a href="<%= ResolveUrl("~/ServiceCenter.aspx") %>">Service Center &amp; Repairs</a>
+                <a href="<%= ResolveUrl("~/Products/ServiceCenter.aspx") %>">Service Center & Repairs
+                </a>
                 <a href="<%= ResolveUrl("~/About.aspx") %>">About Our Curations</a>
                 <a href="<%= ResolveUrl("~/Contact.aspx") %>">Contact Specialists</a>
             </div>

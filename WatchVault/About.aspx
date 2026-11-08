@@ -1,430 +1,597 @@
 ﻿
-<%@ Page Title="About Us | WatchVault" Language="C#" AutoEventWireup="true"
-    CodeBehind="About.aspx.cs" Inherits="WatchVault.About" %>
+<%@ Page Title="About Us | WatchVault" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="About.aspx.cs" Inherits="WatchVault.About" %>
 
-<!DOCTYPE html>
-<html lang="en">
-<head runat="server">
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>About Us | WatchVault</title>
+<asp:Content ID="AboutContent" ContentPlaceHolderID="MainContent" runat="server">
 
     <style>
-        * {
+        /* =========================================
+           WATCHVAULT - ABOUT US PAGE
+        ========================================= */
+
+        .wv-about {
+            --wv-navy: #102542;
+            --wv-blue: #438fe0;
+            --wv-muted: #718096;
+            --wv-light: #f5f8fc;
+            --wv-border: #e5ebf2;
+            color: var(--wv-navy);
+            overflow: hidden;
+        }
+
+        .wv-about * {
             box-sizing: border-box;
         }
 
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #20252e;
-            background: #ffffff;
-            line-height: 1.7;
-        }
-
-        a {
-            text-decoration: none;
-        }
-
-        /* Consistent WatchVault logo styling */
-        .brand {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 25px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: #e5bd76;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .navbar {
-            min-height: 76px;
-            padding: 18px 7%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            background: #111827;
-            color: #ffffff;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
-
-        .nav-links a {
-            color: #f9fafb;
-            font-size: 14px;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: #e5bd76;
-        }
-
-        .hero {
-            padding: 90px 20px;
-            text-align: center;
-            color: #ffffff;
-            background: linear-gradient(135deg, #111827, #293449);
-        }
-
-        .eyebrow {
-            color: #e5bd76;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .hero h1 {
-            margin: 15px 0;
-            font-size: clamp(36px, 5vw, 58px);
-            line-height: 1.15;
-        }
-
-        .hero p {
-            max-width: 650px;
-            margin: 0 auto;
-            color: #d1d5db;
-            font-size: 17px;
-        }
-
-        .container {
-            max-width: 1120px;
+        .wv-about .wv-container {
+            width: min(1200px, 90%);
             margin: auto;
-            padding: 65px 24px;
         }
 
-        .intro {
+        /* HERO SECTION */
+
+        .wv-about-hero {
+            background: #f5f8fc;
+            padding: 85px 0;
+        }
+
+        .wv-about-hero-grid {
             display: grid;
-            grid-template-columns: 1.1fr 1fr;
-            gap: 48px;
+            grid-template-columns: 1fr 1fr;
             align-items: center;
+            gap: 65px;
         }
 
-        .intro h2,
-        .section-heading {
-            font-size: 32px;
-            line-height: 1.25;
-            color: #111827;
+        .wv-about-label {
+            display: inline-block;
+            color: #438fe0;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
         }
 
-        .intro p {
-            color: #5b6472;
+        .wv-about-hero h1 {
+            font-family: Georgia, serif;
+            font-size: clamp(38px, 5vw, 62px);
+            line-height: 1.15;
+            font-weight: 400;
+            margin: 0 0 25px;
+            color: #102542;
         }
 
-        .watch-art {
-            min-height: 310px;
-            display: flex;
+        .wv-about-hero h1 span {
+            color: #438fe0;
+            font-style: italic;
+        }
+
+        .wv-about-hero p {
+            color: #718096;
+            font-size: 16px;
+            line-height: 1.9;
+            margin-bottom: 30px;
+        }
+
+        .wv-about-btn {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding: 14px 27px;
+            background: #102542;
+            color: white !important;
+            text-decoration: none !important;
+            border: 1px solid #102542;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: .3s ease;
+        }
+
+        .wv-about-btn:hover {
+            background: #438fe0;
+            border-color: #438fe0;
+            transform: translateY(-2px);
+        }
+
+        .wv-about-hero-image {
+            position: relative;
+        }
+
+        .wv-about-hero-image img {
+            width: 100%;
+            height: 440px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .wv-image-caption {
+            position: absolute;
+            bottom: -20px;
+            left: -25px;
+            background: white;
+            padding: 22px 28px;
+            box-shadow: 0 8px 30px rgba(16, 37, 66, .10);
+        }
+
+        .wv-image-caption strong {
+            display: block;
+            font-family: Georgia, serif;
+            font-size: 21px;
+            font-weight: 400;
+        }
+
+        .wv-image-caption span {
+            color: #718096;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* OUR STORY */
+
+        .wv-about-story {
+            padding: 100px 0;
+        }
+
+        .wv-about-story-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 75px;
+        }
+
+        .wv-story-image img {
+            width: 100%;
+            height: 420px;
+            object-fit: cover;
+        }
+
+        .wv-about-section-title {
+            font-family: Georgia, serif;
+            font-size: clamp(30px, 4vw, 43px);
+            font-weight: 400;
+            line-height: 1.25;
+            margin-bottom: 24px;
+            color: #102542;
+        }
+
+        .wv-about-text {
+            color: #718096;
+            font-size: 15px;
+            line-height: 1.95;
+            margin-bottom: 18px;
+        }
+
+        .wv-story-line {
+            width: 55px;
+            height: 3px;
+            background: #438fe0;
+            margin-bottom: 25px;
+        }
+
+        /* STATISTICS */
+
+        .wv-about-stats {
+            background: #102542;
+            padding: 55px 0;
+        }
+
+        .wv-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
             text-align: center;
-            border-radius: 12px;
-            padding: 30px;
-            background: radial-gradient(circle at center, #39465a, #111827 72%);
-            color: #e5bd76;
         }
 
-        .watch-symbol {
-            font-size: 100px;
-            line-height: 1.2;
+        .wv-stat-item h3 {
+            color: #fff;
+            font-family: Georgia, serif;
+            font-size: 39px;
+            font-weight: 400;
+            margin-bottom: 8px;
         }
 
-        .watch-art p {
-            color: #f3e7d2;
-            margin-bottom: 0;
+        .wv-stat-item p {
+            color: #b9c8dc;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0;
         }
 
-        .values-section {
-            background: #f6f7f9;
+        /* OUR VALUES */
+
+        .wv-about-values {
+            padding: 100px 0;
+            background: #f5f8fc;
         }
 
-        .section-title {
+        .wv-about-heading {
             text-align: center;
-            margin-bottom: 35px;
+            max-width: 650px;
+            margin: 0 auto 55px;
         }
 
-        .section-title p {
-            color: #697386;
+        .wv-about-heading p {
+            color: #718096;
+            font-size: 15px;
+            line-height: 1.8;
         }
 
-        .values {
+        .wv-values-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 22px;
+            gap: 25px;
         }
 
-        .value-card {
-            padding: 30px 24px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
+        .wv-value-card {
+            background: #fff;
+            padding: 38px 30px;
+            border: 1px solid #e5ebf2;
+            transition: .3s ease;
         }
 
-        .value-icon {
-            font-size: 30px;
+        .wv-value-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 12px 30px rgba(16, 37, 66, .08);
         }
 
-        .value-card h3 {
-            margin: 12px 0 8px;
-            color: #182033;
+        .wv-value-number {
+            color: #438fe0;
+            font-family: Georgia, serif;
+            font-size: 27px;
+            margin-bottom: 22px;
         }
 
-        .value-card p {
-            margin-bottom: 0;
-            color: #697386;
+        .wv-value-card h3 {
+            color: #102542;
+            font-family: Georgia, serif;
+            font-size: 23px;
+            font-weight: 400;
+            margin-bottom: 15px;
+        }
+
+        .wv-value-card p {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.9;
+            margin: 0;
+        }
+
+        /* CLOSING SECTION */
+
+        .wv-about-cta {
+            padding: 95px 20px;
+            text-align: center;
+            background: #fff;
+        }
+
+        .wv-about-cta h2 {
+            font-family: Georgia, serif;
+            font-size: clamp(30px, 4vw, 45px);
+            font-weight: 400;
+            margin-bottom: 18px;
+        }
+
+        .wv-about-cta p {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            color: #718096;
+            line-height: 1.9;
             font-size: 15px;
         }
 
-        .mission {
-            text-align: center;
-            max-width: 800px;
-            margin: auto;
-        }
+        /* RESPONSIVE DESIGN */
 
-        .mission p {
-            color: #697386;
-        }
+        @media (max-width: 768px) {
 
-        .shop-button {
-            display: inline-block;
-            margin-top: 18px;
-            padding: 13px 27px;
-            border-radius: 5px;
-            background: #b68b48;
-            color: #ffffff;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        .shop-button:hover {
-            background: #96703a;
-        }
-
-        .footer {
-            padding: 28px 20px;
-            text-align: center;
-            color: #d1d5db;
-            background: #111827;
-            font-size: 13px;
-        }
-
-        @media (max-width: 700px) {
-            .navbar {
-                flex-direction: column;
+            .wv-about-hero {
+                padding: 55px 0 75px;
             }
 
-            .nav-links {
-                justify-content: center;
-                gap: 15px;
+            .wv-about-hero-grid,
+            .wv-about-story-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
             }
 
-            .hero {
+            .wv-about-hero h1 {
+                font-size: 42px;
+            }
+
+            .wv-about-hero-image img {
+                height: 320px;
+            }
+
+            .wv-image-caption {
+                left: 10px;
+                bottom: -15px;
+            }
+
+            .wv-about-story,
+            .wv-about-values {
+                padding: 65px 0;
+            }
+
+            .wv-story-image img {
+                height: 320px;
+            }
+
+            .wv-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 35px 15px;
+            }
+
+            .wv-stat-item h3 {
+                font-size: 32px;
+            }
+
+            .wv-values-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wv-about-cta {
                 padding: 65px 20px;
             }
+        }
 
-            .intro {
-                grid-template-columns: 1fr;
-                gap: 28px;
+        @media (max-width: 380px) {
+            .wv-about-hero h1 {
+                font-size: 35px;
             }
 
-            .values {
-                grid-template-columns: 1fr;
-            }
-
-            .intro h2,
-            .section-heading {
-                font-size: 27px;
+            .wv-about-container {
+                width: 94%;
             }
         }
     </style>
-</head>
 
-<body>
-    <form id="form1" runat="server">
 
-        <!-- Navigation -->
-        <header class="navbar">
+    <main class="wv-about">
 
-            <!-- Logo always returns to the public landing page -->
-            <a class="brand" href="<%= ResolveUrl("~/Default.aspx") %>">
-                WATCHVAULT
-            </a>
+        <!-- HERO SECTION -->
 
-            <nav class="nav-links" aria-label="Main navigation">
-                <a href="<%= ResolveUrl("~/Home.aspx") %>">Home</a>
+            <section class="wv-about-hero">
+                <div class="wv-container">
 
-                <a href="<%= ResolveUrl("~/About.aspx") %>" class="active">
-                    About Us
-                </a>
+                <div class="wv-about-hero-grid">
 
-                <a href="<%= ResolveUrl("~/Home.aspx#products") %>">
-                    Shop Watches
-                </a>
-
-                <a href="<%= ResolveUrl("~/Login.aspx") %>">
-                    Login
-                </a>
-            </nav>
-        </header>
-
-        <!-- Hero section -->
-        <section class="hero">
-            <span class="eyebrow">Our Story</span>
-
-            <h1>
-                Time Is More Than<br />
-                Just a Moment.
-            </h1>
-
-            <p>
-                Welcome to WatchVault, your destination for discovering
-                timepieces that reflect your style, personality, and
-                appreciation for timeless design.
-            </p>
-        </section>
-
-        <main>
-
-            <!-- About introduction -->
-            <section class="container intro">
-                <div>
-                    <span class="eyebrow">Who We Are</span>
-
-                    <h2>A Passion for Timepieces</h2>
-
-                    <p>
-                        WatchVault is an online watch-shopping platform
-                        designed to make discovering watches simple,
-                        enjoyable, and convenient.
-                    </p>
-
-                    <p>
-                        Whether you appreciate classic designs, modern
-                        styles, or everyday watches, our goal is to help
-                        you explore different timepieces and find one
-                        that suits your preferences.
-                    </p>
-
-                    <p>
-                        We bring product discovery and online shopping
-                        together in one accessible experience.
-                    </p>
-                </div>
-
-                <div class="watch-art">
                     <div>
-                        <div class="watch-symbol" aria-hidden="true">
-                            &#8986;
-                        </div>
+                        <span class="wv-about-label">
+                            Welcome to WatchVault
+                        </span>
 
-                        <h2>Every Second Matters</h2>
-
-                        <p>Discover your style. Value your time.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Mission and values -->
-            <section class="values-section">
-                <div class="container">
-                    <div class="section-title">
-                        <span class="eyebrow">What We Stand For</span>
-
-                        <h2 class="section-heading">
-                            The WatchVault Values
-                        </h2>
+                        <h1>
+                            More Than Time.<br />
+                            A Statement of <span>Style.</span>
+                        </h1>
 
                         <p>
-                            The principles behind the shopping experience
-                            we aim to create.
+                            At WatchVault, we believe a watch is more than
+                            an instrument that tells time. It represents
+                            personality, craftsmanship, precision and
+                            timeless elegance. Our collection brings
+                            together carefully selected timepieces for
+                            every moment and every lifestyle.
                         </p>
+
+                        <a href="<%= ResolveUrl("~/Products/NewArrivals.aspx") %>"
+                           class="wv-about-btn">
+                            EXPLORE OUR COLLECTION
+                        </a>
                     </div>
 
-                    <div class="values">
-                        <article class="value-card">
-                            <div class="value-icon" aria-hidden="true">
-                                &#9733;
-                            </div>
+                    <div class="wv-about-hero-image">
+                        <img src="<%= ResolveUrl("~/Images/about-watch.jpg") %>"
+                             alt="Luxury watch collection at WatchVault" />
 
-                            <h3>Style &amp; Variety</h3>
-
-                            <p>
-                                Explore different watch styles and designs
-                                to find a timepiece that fits your taste
-                                and everyday needs.
-                            </p>
-                        </article>
-
-                        <article class="value-card">
-                            <div class="value-icon" aria-hidden="true">
-                                &#9825;
-                            </div>
-
-                            <h3>Customer Focus</h3>
-
-                            <p>
-                                We aim to make browsing products and
-                                navigating the online shopping experience
-                                straightforward and user-friendly.
-                            </p>
-                        </article>
-
-                        <article class="value-card">
-                            <div class="value-icon" aria-hidden="true">
-                                &#9201;
-                            </div>
-
-                            <h3>Timeless Design</h3>
-
-                            <p>
-                                We celebrate the role of watches as both
-                                useful accessories and expressions of
-                                individual personality.
-                            </p>
-                        </article>
+                        <div class="wv-image-caption">
+                            <strong>Timeless by Design.</strong>
+                            <span>Precision Meets Elegance</span>
+                        </div>
                     </div>
+
                 </div>
-            </section>
 
-            <!-- Mission -->
-            <section class="container mission">
-                <span class="eyebrow">Our Mission</span>
+            </div>
+        </section>
 
-                <h2 class="section-heading">
-                    Making Your Next Watch Easier to Discover
+
+        <!-- OUR STORY -->
+
+        <section class="wv-about-story">
+            <div class="wv-container">
+
+                <div class="wv-about-story-grid">
+
+                    <div class="wv-story-image">
+                        <img src="<%= ResolveUrl("~/Images/watch-craftsmanship.jpg") %>"
+                             alt="Detailed craftsmanship of a luxury watch" />
+                    </div>
+
+                    <div>
+
+                        <span class="wv-about-label">
+                            Our Story
+                        </span>
+
+                        <h2 class="wv-about-section-title">
+                            Celebrating the Art of Fine Watchmaking
+                        </h2>
+
+                        <div class="wv-story-line"></div>
+
+                        <p class="wv-about-text">
+                            WatchVault was created with a passion for
+                            exceptional timepieces and the art of
+                            watchmaking. We aim to bring together
+                            watches that combine outstanding design,
+                            reliable performance and lasting quality.
+                        </p>
+
+                        <p class="wv-about-text">
+                            From sophisticated dress watches to
+                            adventurous sports watches, our collection
+                            is designed to help customers discover
+                            timepieces that match their individual
+                            preferences and lifestyles.
+                        </p>
+
+                        <p class="wv-about-text">
+                            Our goal is to make discovering and
+                            purchasing quality watches simple,
+                            informative and enjoyable through a
+                            convenient online shopping experience.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- BRAND HIGHLIGHTS -->
+
+        <section class="wv-about-stats">
+            <div class="wv-container">
+
+                <div class="wv-stats-grid">
+
+                    <div class="wv-stat-item">
+                        <h3>01</h3>
+                        <p>Quality First</p>
+                    </div>
+
+                    <div class="wv-stat-item">
+                        <h3>02</h3>
+                        <p>Timeless Design</p>
+                    </div>
+
+                    <div class="wv-stat-item">
+                        <h3>03</h3>
+                        <p>Customer Focus</p>
+                    </div>
+
+                    <div class="wv-stat-item">
+                        <h3>04</h3>
+                        <p>Precision</p>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- OUR VALUES -->
+
+        <section class="wv-about-values">
+            <div class="wv-container">
+
+                <div class="wv-about-heading">
+
+                    <span class="wv-about-label">
+                        What Defines Us
+                    </span>
+
+                    <h2 class="wv-about-section-title">
+                        The Values Behind WatchVault
+                    </h2>
+
+                    <p>
+                        Every detail matters. Our commitment to quality,
+                        design and customer satisfaction shapes the
+                        WatchVault experience.
+                    </p>
+
+                </div>
+
+
+                <div class="wv-values-grid">
+
+                    <div class="wv-value-card">
+
+                        <div class="wv-value-number">01</div>
+
+                        <h3>Exceptional Quality</h3>
+
+                        <p>
+                            We focus on presenting carefully selected
+                            timepieces with detailed product information,
+                            specifications and warranty details to help
+                            customers make informed decisions.
+                        </p>
+
+                    </div>
+
+
+                    <div class="wv-value-card">
+
+                        <div class="wv-value-number">02</div>
+
+                        <h3>Timeless Elegance</h3>
+
+                        <p>
+                            We appreciate the balance between classic
+                            watchmaking traditions and modern design.
+                            Our collections reflect different tastes,
+                            occasions and lifestyles.
+                        </p>
+
+                    </div>
+
+
+                    <div class="wv-value-card">
+
+                        <div class="wv-value-number">03</div>
+
+                        <h3>Customer Experience</h3>
+
+                        <p>
+                            We aim to provide a convenient shopping
+                            journey through easy navigation, product
+                            comparisons, secure accounts and accessible
+                            order information.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- CLOSING SECTION -->
+
+        <section class="wv-about-cta">
+            <div class="wv-container">
+
+                <span class="wv-about-label">
+                    Discover WatchVault
+                </span>
+
+                <h2>
+                    Find the Timepiece That Defines You.
                 </h2>
 
                 <p>
-                    Our mission is to provide a convenient online
-                    destination where customers can browse watch
-                    collections, learn about products, and enjoy a
-                    clear and accessible shopping journey.
+                    Explore our collection and discover watches that
+                    complement your personality, celebrate your
+                    achievements and accompany every important moment.
                 </p>
 
-                <a class="shop-button"
-                   href="<%= ResolveUrl("~/Home.aspx#products") %>">
-                    Explore Watches
+                <a href="<%= ResolveUrl("~/Products/NewArrivals.aspx") %>"
+                   class="wv-about-btn">
+                    DISCOVER OUR WATCHES
                 </a>
-            </section>
 
-        </main>
+            </div>
+        </section>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>
-                &copy; <%= DateTime.Now.Year %> WatchVault.
-                All rights reserved.
-            </p>
+    </main>
 
-            <p>Discover your style. Value your time.</p>
-        </footer>
-
-    </form>
-</body>
-</html>
+</asp:Content>

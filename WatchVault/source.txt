@@ -1,0 +1,8 @@
+﻿db connection
+Server=localhost\MSSQLSERVER02;Database=master;Trusted_Connection=True;
+
+
+
+Ctrl + K, Ctrl + F	Format selected code
+
+Ctrl + K, Ctrl + C	Comment selected code

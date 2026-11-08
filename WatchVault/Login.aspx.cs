@@ -1,23 +1,32 @@
 ﻿
-using Google.Apis.Auth;
-using Microsoft.SqlServer.Server;
 using System;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
+using System.Web.Security;
+using System.Web.UI;
+using Google.Apis.Auth;
 
 namespace WatchVault
 {
-    public partial class Login : System.Web.UI.Page
+    public partial class Login : Page
     {
+        private string ConnectionString
+        {
+            get
+            {
+                return ConfigurationManager
+                    .ConnectionStrings["WatchVaultDB"]
+                    .ConnectionString;
+            }
+        }
+
         protected string GoogleClientId
         {
             get
             {
-                return ConfigurationManager.AppSettings["GoogleClientId"]
-                       ?? string.Empty;
+                return ConfigurationManager.AppSettings["GoogleClientId"] ?? "";
             }
         }
 
@@ -25,11 +34,10 @@ namespace WatchVault
         {
             get
             {
-                string id = GoogleClientId;
-                return !string.IsNullOrWhiteSpace(id)
-                    && id.EndsWith(
-                        ".apps.googleusercontent.com",
-                        StringComparison.OrdinalIgnoreCase);
+                return !string.IsNullOrWhiteSpace(GoogleClientId) &&
+                       GoogleClientId.EndsWith(
+                           ".apps.googleusercontent.com",
+                           StringComparison.OrdinalIgnoreCase);
             }
         }
 
@@ -39,280 +47,303 @@ namespace WatchVault
 
             if (!IsPostBack && Session["UserId"] != null)
             {
-                Response.Redirect("Default.aspx", false);
-                Context.ApplicationInstance.CompleteRequest();
+                RedirectByRole(Convert.ToString(Session["Role"]));
             }
         }
 
+        // NORMAL LOGIN
         protected void btnLogin_Click(object sender, EventArgs e)
         {
-            string email = txtEmail.Text.Trim();
+            lblMessage.Text = "";
+
+            if (!Page.IsValid)
+                return;
+
+            string email = txtEmail.Text.Trim().ToLowerInvariant();
             string password = txtPassword.Text;
 
-            if (string.IsNullOrWhiteSpace(email) ||
-                string.IsNullOrEmpty(password))
-            {
-                ShowMessage("Please enter your email and password.");
-                return;
-            }
-
-            ConnectionStringSettings setting =
-                ConfigurationManager.ConnectionStrings["WatchVaultDB"];
-
-            if (setting == null)
-            {
-                ShowMessage("The account database is not configured.");
-                return;
-            }
-
             try
             {
-                using (SqlConnection con =
-                    new SqlConnection(setting.ConnectionString))
-                using (SqlCommand cmd = new SqlCommand(
-                    @"SELECT UserId, FullName, Email,
-                             PasswordHash, PasswordSalt, Role
-                      FROM Users
-                      WHERE Email = @Email", con))
+                using (SqlConnection con = new SqlConnection(ConnectionString))
                 {
-                    cmd.Parameters.Add(
-                        "@Email", SqlDbType.NVarChar, 254).Value = email;
+                    string sql = @"
+                        SELECT UserID, FullName, Email,
+                               PasswordHash, PasswordSalt, Role
+                        FROM dbo.Users
+                        WHERE Email = @Email AND IsActive = 1";
 
-                    con.Open();
-
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    using (SqlCommand cmd = new SqlCommand(sql, con))
                     {
-                        if (!reader.Read())
-                        {
-                            ShowMessage("Invalid email or password.");
-                            return;
-                        }
+                        cmd.Parameters.Add("@Email", SqlDbType.NVarChar, 150)
+                            .Value = email;
 
-                        int userId = Convert.ToInt32(reader["UserId"]);
-                        string fullName = Convert.ToString(reader["FullName"]);
-                        string storedHash =
-                            Convert.ToString(reader["PasswordHash"]);
-                        string storedSalt =
-                            Convert.ToString(reader["PasswordSalt"]);
-                        string role = Convert.ToString(reader["Role"]);
+                        con.Open();
 
-                        if (!VerifyPassword(
-                            password, storedSalt, storedHash))
-                        {
-                            ShowMessage("Invalid email or password.");
-                            return;
-                        }
-
-                        StartSession(userId, fullName, email, role);
-                    }
-                }
-            }
-            catch (SqlException)
-            {
-                ShowMessage("Unable to access the account database.");
-            }
-            catch (Exception)
-            {
-                ShowMessage("Unable to sign in right now. Please try again.");
-            }
-        }
-
-        protected void btnGoogle_Click(object sender, EventArgs e)
-        {
-            string idToken = hfGoogleToken.Value;
-            hfGoogleToken.Value = string.Empty;
-
-            if (!GoogleEnabled || string.IsNullOrWhiteSpace(idToken))
-            {
-                ShowMessage("Google sign-in is not available right now.");
-                return;
-            }
-
-            try
-            {
-                var settings =
-                    new GoogleJsonWebSignature.ValidationSettings
-                    {
-                        Audience = new[] { GoogleClientId }
-                    };
-
-                GoogleJsonWebSignature.Payload payload =
-                    Task.Run(() =>
-                        GoogleJsonWebSignature.ValidateAsync(
-                            idToken, settings))
-                    .GetAwaiter()
-                    .GetResult();
-
-                if (payload == null ||
-                    !payload.EmailVerified ||
-                    string.IsNullOrWhiteSpace(payload.Email))
-                {
-                    ShowMessage("Your Google email address is not verified.");
-                    return;
-                }
-
-                string email = payload.Email.Trim();
-                string name = string.IsNullOrWhiteSpace(payload.Name)
-                    ? email
-                    : payload.Name.Trim();
-
-                ConnectionStringSettings setting =
-                    ConfigurationManager.ConnectionStrings["WatchVaultDB"];
-
-                if (setting == null)
-                {
-                    ShowMessage("The account database is not configured.");
-                    return;
-                }
-
-                int userId;
-                string fullName;
-                string role;
-
-                using (SqlConnection con =
-                    new SqlConnection(setting.ConnectionString))
-                {
-                    con.Open();
-
-                    using (SqlCommand find = new SqlCommand(
-                        @"SELECT UserId, FullName, Role
-                          FROM Users
-                          WHERE Email = @Email", con))
-                    {
-                        find.Parameters.Add(
-                            "@Email", SqlDbType.NVarChar, 254).Value = email;
-
-                        using (SqlDataReader reader = find.ExecuteReader())
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.Read())
                             {
-                                userId = Convert.ToInt32(reader["UserId"]);
-                                fullName =
-                                    Convert.ToString(reader["FullName"]);
-                                role = Convert.ToString(reader["Role"]);
+                                string hash = Convert.ToString(reader["PasswordHash"]);
+                                string salt = Convert.ToString(reader["PasswordSalt"]);
+
+                                if (VerifyPassword(password, salt, hash))
+                                {
+                                    int id = Convert.ToInt32(reader["UserID"]);
+                                    string name = Convert.ToString(reader["FullName"]);
+                                    string userEmail = Convert.ToString(reader["Email"]);
+                                    string role = Convert.ToString(reader["Role"]);
+
+                                    reader.Close();
+
+                                    LoginUser(id, name, userEmail, role);
+                                    return;
+                                }
                             }
-                            else
-                            {
-                                userId = 0;
-                                fullName = null;
-                                role = null;
-                            }
-                        }
-                    }
-
-                    if (userId == 0)
-                    {
-                        // Create a customer account for a new Google user.
-                        using (SqlCommand add = new SqlCommand(
-                            @"INSERT INTO Users
-                                (FullName, Email, PasswordHash, PasswordSalt, Role)
-                              OUTPUT INSERTED.UserId
-                              VALUES (@FullName, @Email, '', '', 'Customer')",
-                            con))
-                        {
-                            add.Parameters.Add(
-                                "@FullName", SqlDbType.NVarChar, 100).Value =
-                                name.Length > 100 ? name.Substring(0, 100) : name;
-
-                            add.Parameters.Add(
-                                "@Email", SqlDbType.NVarChar, 254).Value = email;
-
-                            userId = Convert.ToInt32(add.ExecuteScalar());
-                            fullName = name;
-                            role = "Customer";
                         }
                     }
                 }
 
-                StartSession(userId, fullName, email, role);
+                lblMessage.Text = "Invalid email or password.";
             }
-            catch (InvalidJwtException)
+            catch (Exception ex)
             {
-                ShowMessage(
-                    "Google sign-in could not be verified. Please try again.");
-            }
-            catch (SqlException)
-            {
-                ShowMessage("Unable to access the account database.");
-            }
-            catch (Exception)
-            {
-                ShowMessage(
-                    "Unable to sign in with Google right now. Please try again.");
+                System.Diagnostics.Trace.TraceError(
+                    "Login error: " + ex);
+
+                lblMessage.Text = "Unable to log in. Please try again.";
             }
         }
 
-        private void StartSession(
-            int userId, string fullName, string email, string role)
-        {
-            Session["UserId"] = userId;          // from your Users table
-            Session["UserName"] = fullName;      // or first name / username
-            Response.Redirect("Default.aspx");
-            Session["FullName"] = fullName;
-            Session["Email"] = email;
-            Session["Role"] = role;
-
-            Response.Redirect("Default.aspx", false);
-            Context.ApplicationInstance.CompleteRequest();
-        }
-
-        private bool VerifyPassword(
-            string password, string saltHex, string hashHex)
+        // PASSWORD VERIFICATION
+        private bool VerifyPassword(string password, string saltText, string hashText)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(saltHex) ||
-                    string.IsNullOrWhiteSpace(hashHex))
+                byte[] salt;
+                byte[] expectedHash;
+
+                if (saltText.Length == 24 && hashText.Length == 44)
+                {
+                    salt = Convert.FromBase64String(saltText);
+                    expectedHash = Convert.FromBase64String(hashText);
+                }
+                else if (saltText.Length == 32 && hashText.Length == 64)
+                {
+                    salt = HexToBytes(saltText);
+                    expectedHash = HexToBytes(hashText);
+                }
+                else
+                {
+                    return false;
+                }
+
+                if (salt.Length != 16 || expectedHash.Length != 32)
                     return false;
 
-                byte[] salt = HexToBytes(saltHex);
-                byte[] expectedHash = HexToBytes(hashHex);
+                return CheckHash(password, salt, expectedHash, true) ||
+                       CheckHash(password, salt, expectedHash, false);
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-                using (var deriveBytes = new Rfc2898DeriveBytes(
+        private bool CheckHash(
+            string password,
+            byte[] salt,
+            byte[] expectedHash,
+            bool sha256)
+        {
+            byte[] actualHash;
+
+            if (sha256)
+            {
+                using (var pbkdf2 = new Rfc2898DeriveBytes(
                     password, salt, 100000, HashAlgorithmName.SHA256))
                 {
-                    byte[] actualHash =
-                        deriveBytes.GetBytes(expectedHash.Length);
-
-                    return FixedTimeEquals(actualHash, expectedHash);
+                    actualHash = pbkdf2.GetBytes(32);
                 }
             }
-            catch (FormatException) { return false; }
-            catch (ArgumentException) { return false; }
-        }
-
-        private static byte[] HexToBytes(string hex)
-        {
-            if (string.IsNullOrEmpty(hex) || hex.Length % 2 != 0)
-                throw new FormatException("Invalid hexadecimal value.");
-
-            byte[] bytes = new byte[hex.Length / 2];
-
-            for (int i = 0; i < bytes.Length; i++)
+            else
             {
-                bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+                using (var pbkdf2 = new Rfc2898DeriveBytes(
+                    password, salt, 100000))
+                {
+                    actualHash = pbkdf2.GetBytes(32);
+                }
             }
-
-            return bytes;
-        }
-
-        private static bool FixedTimeEquals(byte[] a, byte[] b)
-        {
-            if (a == null || b == null || a.Length != b.Length)
-                return false;
 
             int difference = 0;
 
-            for (int i = 0; i < a.Length; i++)
-                difference |= a[i] ^ b[i];
+            for (int i = 0; i < 32; i++)
+                difference |= actualHash[i] ^ expectedHash[i];
 
             return difference == 0;
         }
 
-        private void ShowMessage(string message)
+        private byte[] HexToBytes(string hex)
         {
-            lblMessage.Text = Server.HtmlEncode(message);
-            lblMessage.CssClass = "message alert alert-danger";
+            byte[] bytes = new byte[hex.Length / 2];
+
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+
+            return bytes;
+        }
+
+        // GOOGLE LOGIN
+        protected void btnGoogle_Click(object sender, EventArgs e)
+        {
+            lblMessage.Text = "";
+
+            if (!GoogleEnabled)
+            {
+                lblMessage.Text = "Google login is not configured.";
+                return;
+            }
+
+            try
+            {
+                string token = hfGoogleToken.Value;
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    lblMessage.Text = "Please complete Google sign-in.";
+                    return;
+                }
+
+                var payload = GoogleJsonWebSignature.ValidateAsync(
+                    token,
+                    new GoogleJsonWebSignature.ValidationSettings
+                    {
+                        Audience = new[] { GoogleClientId }
+                    }).GetAwaiter().GetResult();
+
+                if (string.IsNullOrWhiteSpace(payload.Email) ||
+                    payload.EmailVerified != true)
+                {
+                    lblMessage.Text = "Google email verification failed.";
+                    return;
+                }
+
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                {
+                    con.Open();
+
+                    string sql = @"
+                        SELECT UserID, FullName, Email, Role
+                        FROM dbo.Users
+                        WHERE Email = @Email AND IsActive = 1";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, con))
+                    {
+                        cmd.Parameters.Add("@Email", SqlDbType.NVarChar, 150)
+                            .Value = payload.Email;
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                int id = Convert.ToInt32(reader["UserID"]);
+                                string name = Convert.ToString(reader["FullName"]);
+                                string email = Convert.ToString(reader["Email"]);
+                                string role = Convert.ToString(reader["Role"]);
+
+                                reader.Close();
+
+                                LoginUser(id, name, email, role);
+                                return;
+                            }
+                        }
+                    }
+
+                    string insert = @"
+                        INSERT INTO dbo.Users
+                        (FullName, Email, PasswordHash, PasswordSalt,
+                         Role, CreatedAt, IsActive)
+                        OUTPUT INSERTED.UserID
+                        VALUES (@Name, @Email, '', '', 'Customer', GETDATE(), 1)";
+
+                    using (SqlCommand cmd = new SqlCommand(insert, con))
+                    {
+                        string name = string.IsNullOrWhiteSpace(payload.Name)
+                            ? payload.Email
+                            : payload.Name;
+
+                        cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 100)
+                            .Value = name;
+
+                        cmd.Parameters.Add("@Email", SqlDbType.NVarChar, 150)
+                            .Value = payload.Email;
+
+                        int id = Convert.ToInt32(cmd.ExecuteScalar());
+
+                        LoginUser(id, name, payload.Email, "Customer");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError(
+                    "Google login error: " + ex);
+
+                lblMessage.Text = "Google sign-in failed. Please try again.";
+            }
+        }
+
+        // LOGIN SESSION
+        private void LoginUser(int id, string name, string email, string role)
+        {
+            Session.Clear();
+
+            Session["UserId"] = id;
+            Session["UserName"] = name;
+            Session["FullName"] = name;
+            Session["Email"] = email;
+            Session["Role"] = role;
+
+            FormsAuthentication.SetAuthCookie(email, false);
+
+            RedirectByRole(role);
+        }
+
+        // REDIRECT USER - UPDATED
+        private void RedirectByRole(string role)
+        {
+            string url;
+
+            if (string.Equals(
+                role, "Admin",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                url = ResolveUrl("~/Admin/Dashboard.aspx");
+            }
+            else
+            {
+                string returnUrl = Request.QueryString["ReturnUrl"];
+
+                // Validate local return URL
+                bool isLocalUrl =
+                    !string.IsNullOrWhiteSpace(returnUrl) &&
+                    returnUrl.StartsWith("/") &&
+                    !returnUrl.StartsWith("//") &&
+                    !returnUrl.StartsWith("/\\");
+
+                if (isLocalUrl)
+                {
+                    url = returnUrl.StartsWith("~/")
+                        ? ResolveUrl(returnUrl)
+                        : returnUrl;
+                }
+                else
+                {
+                    url = ResolveUrl("~/Default.aspx");
+                }
+            }
+
+            Response.Redirect(url, false);
+            Context.ApplicationInstance.CompleteRequest();
         }
     }
 }
