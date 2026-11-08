@@ -132,8 +132,16 @@
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="Images\about-watch.jpg" />
+    <Content Include="Images\casio-f91w.jpg" />
     <Content Include="Login.aspx" />
+    <Content Include="Products\ForMen.aspx" />
+    <Content Include="Products\ForSports.aspx" />
+    <Content Include="Products\ForWomen.aspx" />
     <Content Include="Products\NewArrivals.aspx" />
+    <Content Include="Products\ProductDetails.aspx" />
+    <Content Include="Products\ServiceCenter.aspx" />
+    <Content Include="Products\Watches.aspx" />
     <Content Include="Register.aspx" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
@@ -190,7 +198,9 @@
     <Content Include="Scripts\WebForms\WebForms.js" />
     <Content Include="Scripts\WebForms\WebParts.js" />
     <Content Include="Scripts\WebForms\WebUIValidation.js" />
+    <Content Include="Shopping\Cart.aspx" />
     <Content Include="Site.Master" />
+    <Content Include="source.txt" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config" />
     <Content Include="Bundle.config" />
@@ -244,12 +254,54 @@
     <Compile Include="Login.aspx.designer.cs">
       <DependentUpon>Login.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Products\ForMen.aspx.cs">
+      <DependentUpon>ForMen.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Products\ForMen.aspx.designer.cs">
+      <DependentUpon>ForMen.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Products\ForSports.aspx.cs">
+      <DependentUpon>ForSports.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Products\ForSports.aspx.designer.cs">
+      <DependentUpon>ForSports.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Products\ForWomen.aspx.cs">
+      <DependentUpon>ForWomen.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Products\ForWomen.aspx.designer.cs">
+      <DependentUpon>ForWomen.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Products\NewArrivals.aspx.cs">
       <DependentUpon>NewArrivals.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Products\NewArrivals.aspx.designer.cs">
       <DependentUpon>NewArrivals.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Products\ProductDetails.aspx.cs">
+      <DependentUpon>ProductDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Products\ProductDetails.aspx.designer.cs">
+      <DependentUpon>ProductDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Products\ServiceCenter.aspx.cs">
+      <DependentUpon>ServiceCenter.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Products\ServiceCenter.aspx.designer.cs">
+      <DependentUpon>ServiceCenter.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Products\Watches.aspx.cs">
+      <DependentUpon>Watches.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Products\Watches.aspx.designer.cs">
+      <DependentUpon>Watches.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Register.aspx.cs">
@@ -258,6 +310,13 @@
     </Compile>
     <Compile Include="Register.aspx.designer.cs">
       <DependentUpon>Register.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Shopping\Cart.aspx.cs">
+      <DependentUpon>Cart.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Shopping\Cart.aspx.designer.cs">
+      <DependentUpon>Cart.aspx</DependentUpon>
     </Compile>
     <Compile Include="Site.Master.cs">
       <DependentUpon>Site.Master</DependentUpon>
@@ -283,7 +342,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Images\" />
+    <Folder Include="Images\Products\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

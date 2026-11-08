@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 namespace WatchVault
 {
@@ -7,7 +6,7 @@ namespace WatchVault
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            // The About page is public and does not require login.
+            // About Us page initialization
         }
     }
 }

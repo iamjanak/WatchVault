@@ -1,22 +1,30 @@
 ﻿
 using System;
 using System.Configuration;
+using System.Data;
 using System.Data.SqlClient;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Web.UI;
 
 namespace WatchVault
 {
-    public partial class Register : System.Web.UI.Page
+    public partial class Register : Page
     {
         protected void btnRegister_Click(object sender, EventArgs e)
         {
+            lblMessage.Text = "";
+
+            // Server-side validation
+            if (!Page.IsValid)
+            {
+                return;
+            }
+
             string fullName = txtFullName.Text.Trim();
-            string email = txtEmail.Text.Trim();
+            string email = txtEmail.Text.Trim().ToLowerInvariant();
             string password = txtPassword.Text;
             string confirmPassword = txtConfirmPassword.Text;
-
-            lblMessage.ForeColor = System.Drawing.Color.Red;
 
             if (string.IsNullOrWhiteSpace(fullName) ||
                 string.IsNullOrWhiteSpace(email) ||
@@ -27,22 +35,24 @@ namespace WatchVault
                 return;
             }
 
-            if (fullName.Length > 100 || email.Length > 254)
+            if (fullName.Length > 100 || email.Length > 150)
             {
-                ShowMessage("One or more fields exceed the allowed length.");
+                ShowMessage("Name or email exceeds the allowed length.");
                 return;
             }
 
-            if (!Regex.IsMatch(email,
+            if (!Regex.IsMatch(
+                email,
                 @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             {
                 ShowMessage("Please enter a valid email address.");
                 return;
             }
 
-            if (password.Length < 8)
+            if (password.Length < 8 || password.Length > 128)
             {
-                ShowMessage("Your password must be at least 8 characters.");
+                ShowMessage(
+                    "Password must contain 8 to 128 characters.");
                 return;
             }
 
@@ -52,7 +62,7 @@ namespace WatchVault
                 return;
             }
 
-            // Generate a random salt and a PBKDF2-SHA256 password hash.
+            // Generate a cryptographically secure random salt.
             byte[] saltBytes = new byte[16];
 
             using (RandomNumberGenerator rng =
@@ -61,13 +71,19 @@ namespace WatchVault
                 rng.GetBytes(saltBytes);
             }
 
-            string passwordSalt = BytesToHex(saltBytes);
-            string passwordHash = CreatePasswordHash(password, saltBytes);
+            // IMPORTANT:
+            // Use Base64 because Login.aspx.cs expects Base64.
+            string passwordSalt =
+                Convert.ToBase64String(saltBytes);
+
+            string passwordHash =
+                CreatePasswordHash(password, saltBytes);
 
             ConnectionStringSettings setting =
                 ConfigurationManager.ConnectionStrings["WatchVaultDB"];
 
-            if (setting == null)
+            if (setting == null ||
+                string.IsNullOrWhiteSpace(setting.ConnectionString))
             {
                 ShowMessage("Database configuration is missing.");
                 return;
@@ -75,9 +91,21 @@ namespace WatchVault
 
             string sql = @"
                 INSERT INTO dbo.Users
-                    (FullName, Email, PasswordHash, PasswordSalt, Role)
+                (
+                    FullName,
+                    Email,
+                    PasswordHash,
+                    PasswordSalt,
+                    Role
+                )
                 VALUES
-                    (@FullName, @Email, @PasswordHash, @PasswordSalt, @Role);";
+                (
+                    @FullName,
+                    @Email,
+                    @PasswordHash,
+                    @PasswordSalt,
+                    @Role
+                );";
 
             try
             {
@@ -85,20 +113,49 @@ namespace WatchVault
                     new SqlConnection(setting.ConnectionString))
                 using (SqlCommand cmd = new SqlCommand(sql, con))
                 {
-                    cmd.Parameters.AddWithValue("@FullName", fullName);
-                    cmd.Parameters.AddWithValue("@Email", email);
-                    cmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
-                    cmd.Parameters.AddWithValue("@PasswordSalt", passwordSalt);
-                    cmd.Parameters.AddWithValue("@Role", "Customer");
+                    cmd.Parameters.Add(
+                        "@FullName",
+                        SqlDbType.NVarChar,
+                        100
+                    ).Value = fullName;
+
+                    cmd.Parameters.Add(
+                        "@Email",
+                        SqlDbType.NVarChar,
+                        150
+                    ).Value = email;
+
+                    cmd.Parameters.Add(
+                        "@PasswordHash",
+                        SqlDbType.NVarChar,
+                        255
+                    ).Value = passwordHash;
+
+                    cmd.Parameters.Add(
+                        "@PasswordSalt",
+                        SqlDbType.NVarChar,
+                        32
+                    ).Value = passwordSalt;
+
+                    cmd.Parameters.Add(
+                        "@Role",
+                        SqlDbType.NVarChar,
+                        20
+                    ).Value = "Customer";
 
                     con.Open();
+
                     cmd.ExecuteNonQuery();
                 }
 
-                lblMessage.ForeColor = System.Drawing.Color.Green;
+                // Registration successful.
+                lblMessage.ForeColor =
+                    System.Drawing.Color.Green;
+
                 lblMessage.Text =
                     "Registration successful! You can now log in.";
 
+                // Clear the registration fields.
                 txtFullName.Text = "";
                 txtEmail.Text = "";
                 txtPassword.Text = "";
@@ -106,51 +163,55 @@ namespace WatchVault
             }
             catch (SqlException ex)
             {
-                // Unique constraint or duplicate index violation.
                 if (ex.Number == 2601 || ex.Number == 2627)
                 {
                     ShowMessage(
-                        "An account with this email may already exist.");
+                        "An account with this email already exists.");
                 }
                 else
                 {
-                    // Log the detailed exception privately during development.
                     System.Diagnostics.Trace.TraceError(
-                        "WatchVault registration SQL error: " + ex);
+                        "Registration SQL error: " + ex);
 
                     ShowMessage(
-                        "Registration could not be completed. " +
-                        "Check the database connection and table structure.");
+                        "Registration could not be completed.");
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError(
-                    "WatchVault registration error: " + ex);
+                    "Registration error: " + ex);
 
-                ShowMessage("Registration failed. Please try again.");
+                ShowMessage(
+                    "Registration failed. Please try again.");
             }
         }
 
-        private static string CreatePasswordHash(
-            string password, byte[] saltBytes)
+        // PBKDF2-SHA256 password hashing.
+        // Must match the Login.aspx.cs verification settings.
+        public static string CreatePasswordHash(
+            string password,
+            byte[] saltBytes)
         {
             using (var pbkdf2 = new Rfc2898DeriveBytes(
-                password, saltBytes, 100000, HashAlgorithmName.SHA256))
+                password,
+                saltBytes,
+                100000,
+                HashAlgorithmName.SHA256))
             {
-                return BytesToHex(pbkdf2.GetBytes(32));
+                byte[] hashBytes = pbkdf2.GetBytes(32);
+
+                return Convert.ToBase64String(hashBytes);
             }
         }
 
-        private static string BytesToHex(byte[] bytes)
-        {
-            return BitConverter.ToString(bytes).Replace("-", "");
-        }
-
+        // Display a safe message to the user.
         private void ShowMessage(string message)
         {
-            lblMessage.ForeColor = System.Drawing.Color.Red;
-            lblMessage.Text = message;
+            lblMessage.ForeColor =
+                System.Drawing.Color.Red;
+
+            lblMessage.Text = Server.HtmlEncode(message);
         }
     }
 }

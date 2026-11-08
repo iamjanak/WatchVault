@@ -87,6 +87,24 @@ namespace WatchVault.Products
         protected global::System.Web.UI.WebControls.CheckBox chkCasio;
 
         /// <summary>
+        /// chkFossil control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBox chkFossil;
+
+        /// <summary>
+        /// chkTimex control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBox chkTimex;
+
+        /// <summary>
         /// btnApplyFilters control.
         /// </summary>
         /// <remarks>
