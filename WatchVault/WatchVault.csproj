@@ -135,11 +135,13 @@
     <Content Include="Images\about-watch.jpg" />
     <Content Include="Images\casio-f91w.jpg" />
     <Content Include="Login.aspx" />
+    <Content Include="Products\Cart.aspx" />
     <Content Include="Products\ForMen.aspx" />
     <Content Include="Products\ForSports.aspx" />
     <Content Include="Products\ForWomen.aspx" />
     <Content Include="Products\NewArrivals.aspx" />
     <Content Include="Products\ProductDetails.aspx" />
+    <Content Include="Products\Profile.aspx" />
     <Content Include="Products\ServiceCenter.aspx" />
     <Content Include="Products\Watches.aspx" />
     <Content Include="Register.aspx" />
@@ -254,6 +256,13 @@
     <Compile Include="Login.aspx.designer.cs">
       <DependentUpon>Login.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Products\Cart.aspx.cs">
+      <DependentUpon>Cart.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Products\Cart.aspx.designer.cs">
+      <DependentUpon>Cart.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Products\ForMen.aspx.cs">
       <DependentUpon>ForMen.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -288,6 +297,13 @@
     </Compile>
     <Compile Include="Products\ProductDetails.aspx.designer.cs">
       <DependentUpon>ProductDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Products\Profile.aspx.cs">
+      <DependentUpon>Profile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Products\Profile.aspx.designer.cs">
+      <DependentUpon>Profile.aspx</DependentUpon>
     </Compile>
     <Compile Include="Products\ServiceCenter.aspx.cs">
       <DependentUpon>ServiceCenter.aspx</DependentUpon>

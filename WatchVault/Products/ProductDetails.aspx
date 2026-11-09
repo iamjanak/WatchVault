@@ -616,6 +616,35 @@
 .review-date {
     font-family: 'Inter', sans-serif;
 }
+
+
+.cart-button {
+    display: block;
+    width: 100%;
+    margin-top: 22px;
+    padding: 15px;
+    background: var(--navy);
+    border: 1px solid var(--navy);
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    opacity: 1;
+    transition: .2s ease;
+}
+
+.cart-button:hover:not(:disabled) {
+    background: #263746;
+    border-color: #263746;
+    color: #f0d8a8;
+}
+
+.cart-button:disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
     </style>
 </head>
 
@@ -761,11 +790,11 @@
                         runat="server"
                         Text="ADD TO CART"
                         CssClass="cart-button"
-                        Enabled="false"
-                        ToolTip="Shopping cart integration will be connected in the next step." />
+                        OnClick="btnAddToCart_Click"
+                        CausesValidation="false" />
 
                     <p class="cart-note">
-                        Shopping cart functionality will be connected after the product details.
+                        Securely add this timepiece to your WatchVault shopping cart.
                     </p>
 
                     <a href="<%= ResolveUrl("~/Products/NewArrivals.aspx") %>"

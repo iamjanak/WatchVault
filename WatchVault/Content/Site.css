@@ -1498,3 +1498,162 @@ textarea,
         max-width: 650px;
         margin: 0 auto;
     }
+
+
+/* =========================================
+   WATCHVAULT PROFESSIONAL USER PROFILE
+========================================= */
+
+.wv-account-dropdown {
+    position: relative;
+}
+
+.wv-account-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px 6px 7px;
+    text-decoration: none !important;
+    color: #16273F !important;
+    border: 1px solid #e5e8ed;
+    border-radius: 40px;
+    background: #ffffff;
+    transition: all 0.25s ease;
+}
+
+    .wv-account-toggle:hover {
+        background: #f7f8fa;
+        border-color: #c9b47c;
+        box-shadow: 0 3px 12px rgba(22, 39, 63, 0.08);
+    }
+
+    .wv-account-toggle::after {
+        display: none !important;
+    }
+
+.wv-profile-avatar {
+    width: 39px;
+    height: 39px;
+    min-width: 39px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background: #16273F;
+    color: #D6B878;
+}
+
+    .wv-profile-avatar svg {
+        width: 23px;
+        height: 23px;
+    }
+
+.wv-account-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.35;
+}
+
+.wv-welcome-text {
+    font-size: 10px;
+    color: #777f8b;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.wv-user {
+    font-size: 13px;
+    color: #16273F;
+    font-weight: 700;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wv-account-chevron {
+    display: flex;
+    align-items: center;
+    margin-left: 3px;
+    color: #7b8490;
+}
+
+    .wv-account-chevron svg {
+        width: 15px;
+        height: 15px;
+    }
+
+/* Profile Dropdown */
+
+.wv-profile-menu {
+    min-width: 205px;
+    padding: 9px;
+    margin-top: 12px !important;
+    border: 1px solid #e9edf1;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(22, 39, 63, 0.13);
+}
+
+.wv-dropdown-heading {
+    padding: 9px 12px 7px;
+}
+
+.wv-dropdown-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    color: #9a8a64;
+}
+
+.wv-profile-menu .dropdown-item {
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #26364a;
+    border-radius: 7px;
+    transition: all 0.2s ease;
+}
+
+    .wv-profile-menu .dropdown-item:hover {
+        background: #f1f4f7;
+        color: #16273F;
+    }
+
+    .wv-profile-menu .dropdown-item i {
+        width: 17px;
+        color: #9a8657;
+    }
+
+.wv-profile-menu .dropdown-divider {
+    margin: 7px 0;
+    border-color: #e9edf1;
+}
+
+.wv-profile-menu .wv-logout-item {
+    color: #c03939;
+}
+
+    .wv-profile-menu .wv-logout-item:hover {
+        background: #fff1f1;
+        color: #b52d2d;
+    }
+
+/* Mobile Adjustment */
+
+@media (max-width: 991px) {
+
+    .wv-account-dropdown {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .wv-account-toggle {
+        width: fit-content;
+    }
+
+    .wv-profile-menu {
+        margin-top: 7px !important;
+    }
+}
+

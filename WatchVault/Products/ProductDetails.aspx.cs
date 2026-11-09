@@ -11,7 +11,6 @@ namespace WatchVault.Products
 {
     public partial class ProductDetails1 : Page
     {
-        // DATABASE CONNECTION
         private string ConnectionString
         {
             get
@@ -19,6 +18,22 @@ namespace WatchVault.Products
                 return ConfigurationManager
                     .ConnectionStrings["WatchVaultDB"]
                     .ConnectionString;
+            }
+        }
+
+        private int UserID
+        {
+            get
+            {
+                int userId;
+
+                if (Session["UserID"] != null &&
+                    int.TryParse(Session["UserID"].ToString(), out userId))
+                {
+                    return userId;
+                }
+
+                return 0;
             }
         }
 
@@ -30,7 +45,10 @@ namespace WatchVault.Products
             }
         }
 
+        // ==========================================
         // LOAD SELECTED PRODUCT
+        // ==========================================
+
         private void LoadProduct()
         {
             int productId;
@@ -93,8 +111,7 @@ namespace WatchVault.Products
                         : Server.HtmlEncode(
                             Convert.ToString(reader["Category"]));
 
-                    stock = Convert.ToInt32(
-                        reader["StockQuantity"]);
+                    stock = Convert.ToInt32(reader["StockQuantity"]);
 
                     primaryImage =
                         reader["ImageUrl"] == DBNull.Value
@@ -114,30 +131,285 @@ namespace WatchVault.Products
                     }
                 }
 
-                // LOAD PRODUCT IMAGES
+                // Load existing product information
                 LoadProductImages(productId, primaryImage);
-
-                // LOAD PRODUCT SPECIFICATIONS
                 LoadSpecifications(productId);
 
-                // QUANTITY SETTINGS
+                // Quantity settings
                 txtQuantity.Text = "1";
-
                 txtQuantity.Attributes["min"] = "1";
-
                 txtQuantity.Attributes["max"] =
                     Math.Max(stock, 1).ToString();
-
                 txtQuantity.Attributes["step"] = "1";
 
                 txtQuantity.Enabled = stock > 0;
 
-                // CART INTEGRATION
-                btnAddToCart.Enabled = false;
+                // Enable Add to Cart only when stock exists
+                btnAddToCart.Enabled = stock > 0;
+
+                btnAddToCart.ToolTip = stock > 0
+                    ? "Add this watch to your shopping cart."
+                    : "This watch is currently out of stock.";
             }
         }
 
+        // ==========================================
+        // ADD TO CART
+        // ==========================================
+
+        protected void btnAddToCart_Click(object sender, EventArgs e)
+        {
+            // Check login
+            if (UserID == 0)
+            {
+                string returnUrl = Request.RawUrl;
+
+                Response.Redirect(
+                    "~/Login.aspx?ReturnUrl=" +
+                    Server.UrlEncode(returnUrl), false);
+
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
+
+            int productId;
+            int quantity;
+
+            // Validate product ID
+            if (!int.TryParse(Request.QueryString["id"], out productId)
+                || productId <= 0)
+            {
+                ShowNotFound();
+                return;
+            }
+
+            // Validate quantity
+            if (!int.TryParse(txtQuantity.Text, out quantity)
+                || quantity < 1)
+            {
+                btnAddToCart.Enabled = true;
+                ShowCartMessage("Please select a valid quantity.");
+                return;
+            }
+
+            try
+            {
+                using (SqlConnection connection =
+                    new SqlConnection(ConnectionString))
+                {
+                    connection.Open();
+
+                    using (SqlTransaction transaction =
+                        connection.BeginTransaction(
+                            IsolationLevel.Serializable))
+                    {
+                        try
+                        {
+                            // Verify product and lock its stock record
+                            int stock;
+
+                            const string stockQuery = @"
+                                SELECT StockQuantity
+                                FROM dbo.Products WITH (UPDLOCK, HOLDLOCK)
+                                WHERE ProductId = @ProductId
+                                  AND IsActive = 1;";
+
+                            using (SqlCommand stockCommand =
+                                new SqlCommand(
+                                    stockQuery, connection, transaction))
+                            {
+                                stockCommand.Parameters.Add(
+                                    "@ProductId", SqlDbType.Int)
+                                    .Value = productId;
+
+                                object result = stockCommand.ExecuteScalar();
+
+                                if (result == null || result == DBNull.Value)
+                                {
+                                    transaction.Rollback();
+                                    ShowCartMessage(
+                                        "This product is no longer available.");
+                                    return;
+                                }
+
+                                stock = Convert.ToInt32(result);
+                            }
+
+                            if (stock <= 0)
+                            {
+                                transaction.Rollback();
+                                ShowCartMessage(
+                                    "Sorry, this watch is out of stock.");
+                                return;
+                            }
+
+                            if (quantity > stock)
+                            {
+                                transaction.Rollback();
+                                ShowCartMessage(
+                                    "Only " + stock +
+                                    " watches are available.");
+                                return;
+                            }
+
+                            // Check whether this product is already
+                            // in the customer's cart
+                            int cartItemId = 0;
+                            int existingQuantity = 0;
+
+                            const string checkQuery = @"
+                                SELECT CartItemId, Quantity
+                                FROM dbo.CartItems WITH (UPDLOCK, HOLDLOCK)
+                                WHERE UserID = @UserID
+                                  AND ProductId = @ProductId;";
+
+                            using (SqlCommand checkCommand =
+                                new SqlCommand(
+                                    checkQuery, connection, transaction))
+                            {
+                                checkCommand.Parameters.Add(
+                                    "@UserID", SqlDbType.Int)
+                                    .Value = UserID;
+
+                                checkCommand.Parameters.Add(
+                                    "@ProductId", SqlDbType.Int)
+                                    .Value = productId;
+
+                                using (SqlDataReader reader =
+                                    checkCommand.ExecuteReader())
+                                {
+                                    if (reader.Read())
+                                    {
+                                        cartItemId = Convert.ToInt32(
+                                            reader["CartItemId"]);
+
+                                        existingQuantity = Convert.ToInt32(
+                                            reader["Quantity"]);
+                                    }
+                                }
+                            }
+
+                            int finalQuantity =
+                                existingQuantity + quantity;
+
+                            if (finalQuantity > stock)
+                            {
+                                transaction.Rollback();
+
+                                ShowCartMessage(
+                                    "You already have " +
+                                    existingQuantity +
+                                    " in your cart. Only " +
+                                    stock +
+                                    " are available in total.");
+
+                                return;
+                            }
+
+                            if (cartItemId > 0)
+                            {
+                                // Update existing cart item
+                                const string updateQuery = @"
+                                    UPDATE dbo.CartItems
+                                    SET Quantity = @Quantity
+                                    WHERE CartItemId = @CartItemId
+                                      AND UserID = @UserID;";
+
+                                using (SqlCommand updateCommand =
+                                    new SqlCommand(
+                                        updateQuery, connection, transaction))
+                                {
+                                    updateCommand.Parameters.Add(
+                                        "@Quantity", SqlDbType.Int)
+                                        .Value = finalQuantity;
+
+                                    updateCommand.Parameters.Add(
+                                        "@CartItemId", SqlDbType.Int)
+                                        .Value = cartItemId;
+
+                                    updateCommand.Parameters.Add(
+                                        "@UserID", SqlDbType.Int)
+                                        .Value = UserID;
+
+                                    updateCommand.ExecuteNonQuery();
+                                }
+                            }
+                            else
+                            {
+                                // Insert new cart item
+                                const string insertQuery = @"
+                                    INSERT INTO dbo.CartItems
+                                        (UserID, ProductId, Quantity, AddedAt)
+                                    VALUES
+                                        (@UserID, @ProductId, @Quantity, GETDATE());";
+
+                                using (SqlCommand insertCommand =
+                                    new SqlCommand(
+                                        insertQuery, connection, transaction))
+                                {
+                                    insertCommand.Parameters.Add(
+                                        "@UserID", SqlDbType.Int)
+                                        .Value = UserID;
+
+                                    insertCommand.Parameters.Add(
+                                        "@ProductId", SqlDbType.Int)
+                                        .Value = productId;
+
+                                    insertCommand.Parameters.Add(
+                                        "@Quantity", SqlDbType.Int)
+                                        .Value = quantity;
+
+                                    insertCommand.ExecuteNonQuery();
+                                }
+                            }
+
+                            transaction.Commit();
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
+                    }
+                }
+
+                // Product successfully added.
+                // Redirect to the existing Cart page.
+                // Product successfully added.
+                // Redirect to cart and show a success notification.
+                Response.Redirect("~/Products/Cart.aspx?added=1", false);
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
+            catch (Exception)
+            {
+                ShowCartMessage(
+                    "Unable to add this watch to your cart. Please try again.");
+            }
+        }
+
+        // ==========================================
+        // CART MESSAGE
+        // ==========================================
+
+        private void ShowCartMessage(string message)
+        {
+            // Display a browser message without requiring
+            // another server-side label control.
+            string safeMessage =
+                HttpUtility.JavaScriptStringEncode(message);
+
+            ClientScript.RegisterStartupScript(
+                GetType(),
+                "CartMessage",
+                "alert('" + safeMessage + "');",
+                true);
+        }
+
+        // ==========================================
         // LOAD PRODUCT IMAGE GALLERY
+        // ==========================================
+
         private void LoadProductImages(
             int productId,
             string primaryImage)
@@ -163,8 +435,7 @@ namespace WatchVault.Products
 
                 connection.Open();
 
-                using (SqlDataReader reader =
-                    command.ExecuteReader())
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -176,11 +447,9 @@ namespace WatchVault.Products
 
                         string resolvedUrl = GetImageUrl(imageUrl);
 
-                        // Skip invalid or missing local images.
                         if (string.IsNullOrWhiteSpace(resolvedUrl))
                             continue;
 
-                        // Prevent duplicate images.
                         bool duplicate = false;
 
                         foreach (DataRow row in gallery.Rows)
@@ -208,7 +477,6 @@ namespace WatchVault.Products
                 }
             }
 
-            // ADD MAIN PRODUCT IMAGE IF NOT ALREADY PRESENT.
             string mainUrl = GetImageUrl(primaryImage);
 
             if (!string.IsNullOrWhiteSpace(mainUrl))
@@ -230,7 +498,6 @@ namespace WatchVault.Products
                 if (!alreadyExists)
                 {
                     DataRow newRow = gallery.NewRow();
-
                     newRow["ResolvedUrl"] = mainUrl;
                     newRow["AltText"] = "Main watch product image";
 
@@ -238,7 +505,6 @@ namespace WatchVault.Products
                 }
             }
 
-            // DISPLAY AVAILABLE IMAGES.
             if (gallery.Rows.Count > 0)
             {
                 imgProduct.ImageUrl =
@@ -252,7 +518,6 @@ namespace WatchVault.Products
                 rptGallery.DataSource = gallery;
                 rptGallery.DataBind();
 
-                // Show thumbnails only when multiple images exist.
                 pnlGalleryThumbnails.Visible =
                     gallery.Rows.Count > 1;
             }
@@ -266,7 +531,10 @@ namespace WatchVault.Products
             }
         }
 
+        // ==========================================
         // LOAD TECHNICAL SPECIFICATIONS
+        // ==========================================
+
         private void LoadSpecifications(int productId)
         {
             DataTable specifications = new DataTable();
@@ -302,7 +570,10 @@ namespace WatchVault.Products
                 specifications.Rows.Count == 0;
         }
 
-        // RESOLVE AND VALIDATE IMAGE URL
+        // ==========================================
+        // RESOLVE IMAGE URL
+        // ==========================================
+
         private string GetImageUrl(string imageUrl)
         {
             if (string.IsNullOrWhiteSpace(imageUrl))
@@ -310,7 +581,6 @@ namespace WatchVault.Products
 
             imageUrl = imageUrl.Trim().Replace("\\", "/");
 
-            // SUPPORT EXTERNAL HTTP/HTTPS IMAGES.
             Uri absoluteUri;
 
             if (Uri.TryCreate(
@@ -327,7 +597,6 @@ namespace WatchVault.Products
                 return "";
             }
 
-            // CONVERT TO APPLICATION-RELATIVE PATH.
             string appRelativeUrl;
 
             if (imageUrl.StartsWith("~/"))
@@ -348,7 +617,6 @@ namespace WatchVault.Products
                 string physicalPath =
                     Server.MapPath(appRelativeUrl);
 
-                // CHECK WHETHER THE IMAGE EXISTS.
                 if (File.Exists(physicalPath))
                 {
                     return ResolveUrl(appRelativeUrl);
@@ -366,7 +634,10 @@ namespace WatchVault.Products
             return "";
         }
 
+        // ==========================================
         // PRODUCT NOT FOUND
+        // ==========================================
+
         private void ShowNotFound()
         {
             pnlProduct.Visible = false;

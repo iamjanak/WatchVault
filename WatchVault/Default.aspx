@@ -1019,8 +1019,8 @@
                     </div>
 
                     <a class="wv-bag"
-                       href="Cart.aspx"
-                       aria-label="Shopping bag">
+                        href="<%= ResolveUrl("~/Products/Cart.aspx") %>"
+                        aria-label="Shopping bag">
 
                         <svg viewBox="0 0 24 24"
                              fill="none"
@@ -1059,13 +1059,25 @@
                             <ul class="dropdown-menu dropdown-menu-end">
 
                                 <li>
-                                    <a class="dropdown-item" href="Orders.aspx">
+                                    <a class="dropdown-item"
+                                        href="<%= ResolveUrl("~/Products/Profile.aspx") %>">
+                                        <i class="fa-regular fa-user me-2"></i>
+                                        My Profile
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item"
+                                        href="<%= ResolveUrl("~/Orders.aspx") %>">
+                                        <i class="fa-solid fa-box me-2"></i>
                                         My Orders
                                     </a>
                                 </li>
 
                                 <li>
-                                    <a class="dropdown-item" href="Wishlist.aspx">
+                                    <a class="dropdown-item"
+                                        href="<%= ResolveUrl("~/Wishlist.aspx") %>">
+                                        <i class="fa-regular fa-heart me-2"></i>
                                         Wishlist
                                     </a>
                                 </li>
@@ -1073,7 +1085,6 @@
                                 <li>
                                     <hr class="dropdown-divider" />
                                 </li>
-
                                 <li>
 
                                     <asp:LinkButton ID="btnLogout"
