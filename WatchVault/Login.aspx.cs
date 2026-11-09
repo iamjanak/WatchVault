@@ -45,7 +45,7 @@ namespace WatchVault
         {
             pnlGoogle.Visible = GoogleEnabled;
 
-            if (!IsPostBack && Session["UserId"] != null)
+            if (!IsPostBack && Session["UserID"] != null)
             {
                 RedirectByRole(Convert.ToString(Session["Role"]));
             }
@@ -115,7 +115,10 @@ namespace WatchVault
         }
 
         // PASSWORD VERIFICATION
-        private bool VerifyPassword(string password, string saltText, string hashText)
+        private bool VerifyPassword(
+            string password,
+            string saltText,
+            string hashText)
         {
             try
             {
@@ -187,7 +190,8 @@ namespace WatchVault
             byte[] bytes = new byte[hex.Length / 2];
 
             for (int i = 0; i < bytes.Length; i++)
-                bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+                bytes[i] = Convert.ToByte(
+                    hex.Substring(i * 2, 2), 16);
 
             return bytes;
         }
@@ -293,11 +297,20 @@ namespace WatchVault
         }
 
         // LOGIN SESSION
-        private void LoginUser(int id, string name, string email, string role)
+        private void LoginUser(
+            int id,
+            string name,
+            string email,
+            string role)
         {
             Session.Clear();
 
+            // Standard session key
+            Session["UserID"] = id;
+
+            // Compatibility with existing pages
             Session["UserId"] = id;
+
             Session["UserName"] = name;
             Session["FullName"] = name;
             Session["Email"] = email;
@@ -308,7 +321,7 @@ namespace WatchVault
             RedirectByRole(role);
         }
 
-        // REDIRECT USER - UPDATED
+        // ROLE-BASED REDIRECT
         private void RedirectByRole(string role)
         {
             string url;
@@ -323,7 +336,6 @@ namespace WatchVault
             {
                 string returnUrl = Request.QueryString["ReturnUrl"];
 
-                // Validate local return URL
                 bool isLocalUrl =
                     !string.IsNullOrWhiteSpace(returnUrl) &&
                     returnUrl.StartsWith("/") &&

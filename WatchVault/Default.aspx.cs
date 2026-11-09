@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿
+using System;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 
 namespace WatchVault
 {
@@ -11,11 +8,18 @@ namespace WatchVault
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Session["UserName"] != null)
+            bool isLoggedIn = Session["UserID"] != null;
+
+            phGuest.Visible = !isLoggedIn;
+            phUser.Visible = isLoggedIn;
+
+            if (isLoggedIn)
             {
-                phGuest.Visible = false;
-                phUser.Visible = true;
-                litUserName.Text = Server.HtmlEncode(Session["UserName"].ToString());
+                litUserName.Text = Server.HtmlEncode(
+                    Convert.ToString(
+                        Session["UserName"] ?? "Customer"
+                    )
+                );
             }
         }
 
@@ -23,7 +27,13 @@ namespace WatchVault
         {
             Session.Clear();
             Session.Abandon();
-            Response.Redirect("Default.aspx");
+
+            Response.Redirect(
+                ResolveUrl("~/Login.aspx"),
+                false
+            );
+
+            Context.ApplicationInstance.CompleteRequest();
         }
     }
 }
